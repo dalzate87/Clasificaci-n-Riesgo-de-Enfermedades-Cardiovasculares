@@ -1,0 +1,678 @@
+---
+title: 'Enfermedad Cardiovascular: Un enfoque empírico y predictivo.'
+author: "Diego Alzate, Mayumi Sánchez, Daniel Felipe Hernández, Estefanía Silva, Mariana Celis"
+date: "3/06/2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+<div style="text-align: justify">
+
+## Resumen ##
+En el siguiente trabajo se busca encontrar qué predictores son más relevantes para detectar el riesgo de infarto en 10 años. Se contó  con una base de 4500 observaciones y 16 variables, en las que la presencia de diabetes, los antecedentes de cardiopatía y la edad eran los predictores más relevantes. Para ello se utilizaron modelos lineales generalizados de respuesta binaria con enlace logit. Por otro lado, se determinó que el nivel de colesterol total no es un predictor estadísticamente significativo, y que el factor de protección hormonal asociado al género explica la diferencia de riesgo entre hombres y mujeres, salvo que existan otros factores de riesgo adicionales como el consumo de tabaco. El uso de modelos de regularización permite la construcción de un clasificador para determinar el riesgo de infarto en 10 años, donde mediante el uso del modelo Elastic Net se obtuvo una precisión del 72,76% para detección de personas que están o no en riesgo de enfermedad cardiovascular.
+
+ 
+
+## Introducción ##
+
+Las enfermedades no transmisibles que comprenden las enfermedades cardiovasculares, el cáncer y la diabetes son las principales causas de muerte a nivel mundial y además están aumentando rápidamente.
+Según el Observatorio Nacional de Salud (2013) las enfermedades no transmisibles causaron aproximadamente el 63% de las muertes y se espera que dado su nivel de crecimiento puedan alcanzar el 73% de mortalidad en Colombia. Dentro de estas enfermedades no transmisibles, las enfermedades cardiovasculares son la principal causa de muerte, en ese orden de ideas a nivel mundial el 42% de las muertes por enfermedades cardiovasculares se debieron a cardiopatía isquémica, el 34% de las muertes se debieron a enfermedad cerebrovascular, el 7% a hipertensión arterial y el 2% a cardiopatía reumática.
+
+Las tasas de mortalidad por enfermedades cardiovasculares en los años 1998 a 2011 en Colombia han representado según el Observatorio Nacional de Salud (2013) 12.475.251 años potenciales de vida perdidos lo que implica una tasa de 22,5 años potenciales de vida perdidos por cada 1000 habitantes. Partiendo de este escenario, el presente trabajo se refiere al estudio de las muertes asociadas al paro cardiaco. Para el análisis de este problema disponemos de una base de datos con 4500 observaciones.
+Los ítems incluidos en la base de datos son variables demográficas, hábitos de consumo e información sobre la salud de los individuos, incluyendo sexo, edad, educación, condición de fumador o no fumador, número de cigarrillos consumidos, nivel de presión arterial, número de paros cardíacos previos, si se padece o no hipertensión arterial, presencia o no de diabetes, nivel de colesterol, presión arterial sistólica, presión arterial diastólica, índice de masa corporal, frecuencia cardíaca y nivel de glucosa, entre otros.
+
+Para abordar este problema, se decidió utilizar un método de regresión de respuesta binaria para la clasificación y predicción de esta enfermedad.
+<div/>
+
+<div style="text-align: justify">
+## Objetivos ##
+
+### Objetivo General ###
+
+Determinar los factores de riesgo con mayor incidencia de cardiopatías y, a partir de ahí, predecir en nuevas muestras si un individuo sufrirá o no un infarto agudo de miocardio.
+
+### Objetivos Específicos ###
+
+- Formular un modelo de clasificación para determinar si un individuo sufrirá o no una parada cardiaca dadas sus características de salud y sus hábitos definidos en las variables predictoras.
+
+- Determinar los factores de riesgo más significativos como predictores de parada cardiaca. 
+
+- Usar métodos de regularización para generar estimaciones en muestras nuevas sobre el riesgo de infarto agudo al miocardio en 10 años.
+
+<div/>
+
+
+
+### Contexto del Problema ###
+
+Ante el panorama de la enfermedad arterial coronaria, el cáncer, que es la segunda causa de muerte en Estados Unidos, ocupa un poco más de la mitad de las muertes causadas por enfermedades cardiovasculares, convirtiendo a éstas, especialmente a la forma más común de enfermedad cardiovascular, la enfermedad arterial coronaria, en la primera causa de muerte en Estados Unidos.
+
+De acuerdo con el Instituto del Corazón de Texas, se han definido o identificado las variables que tienen mayor probabilidad de que una persona padezca una enfermedad cardiovascular, estos se denominan factores de riesgo, en ese orden de ideas estos se pueden dividir en primarios y secundarios. Los factores de riesgo principales son aquellos para los cuales existe evidencia médica de que su existencia y prevalencia generan enfermedad cardiovascular, mientras que los factores de riesgo secundarios son aquellos que pueden aumentar la probabilidad de contraer este grupo de enfermedades.
+
+Dada la definición de factores de riesgo, algunos de ellos pueden controlarse, mientras que otros pueden definirse como ambientales o incontrolables. Cuanto menor sea el número de factores de riesgo cardiovascular que tenga una persona, menos probabilidades tendrá de padecer esta enfermedad en algún momento de su vida.
+Según el Instituto del Corazón de Texas, entre los principales factores de riesgo, es decir, aquellos que se sabe con certeza que generan este tipo de enfermedad se encuentran:
+
+**Colesterol alto:** El colesterol es una sustancia generada por el hígado y transportada en la sangre, está presente en todas las células y su función es la formación de las membranas celulares y de algunos tipos de hormonas en el organismo. El colesterol también se obtiene a través del consumo de alimentos de origen animal, es decir, huevos, carne, pescado o productos lácteos.
+
+Cuando hay lipoproteínas de baja densidad (LDL) en exceso, al circular por el organismo por el flujo sanguíneo comienzan a acumularse en las paredes arteriales, esta placa acumulada se endurece y estrecha las arterias impidiendo el flujo de sangre oxigenada, cuando las arterias coronarias sufren esta formación de placa hay un mayor riesgo de paro cardiaco.
+
+**Diabetes:** La presencia de diabetes puede dañar los vasos sanguíneos y los nervios que controlan el corazón generando un funcionamiento irregular o la pérdida total de la función cardiaca, según la Fundación Americana del Corazón el 65% de los pacientes diabéticos mueren por alguna enfermedad cardiovascular. 
+Por otro lado, los pacientes con diabetes tipo II tienen un mayor riesgo cardiovascular que los pacientes con diabetes tipo I.
+
+Se ha definido que ciertos grupos de razas y/o etnias tienen mayor riesgo de padecer diabetes, como los negros, hispanos, polinesios, asiáticos, micronesios y amerindios, por lo que la raza puede convertirse en un factor de riesgo de enfermedad cardiovascular.
+
+**Sobrepeso y obesidad:** El sobrepeso y la obesidad pueden generar consecuencias como el aumento de la tensión arterial, la presencia de diabetes o valores elevados de colesterol en sangre, por lo que son factores de riesgo de enfermedad cardiovascular. 
+
+La obesidad se mide a partir del Índice de Masa Corporal (IMC) que implica una relación entre el peso y el cuadrado de la altura. Esta medida se correlaciona moderadamente con las medidas directas de la grasa corporal. En el caso de los adultos, según el Center for Disease Control and Prevention, una persona adulta con un IMC mayor o igual a 30 kg/m2 sería obesa y con un IMC de 25 a 29,9 kg/m2 tendría sobrepeso.
+
+En ese orden de ideas este índice no es robusto para personas que son atletas de alto rendimiento que pueden tener grandes cantidades de masa muscular.
+
+**Fumar: ** Este hábito entra dentro de los factores de riesgo controlables, sin embargo, dada su capacidad de generar adicción asociada a la presencia de nicotina, es un reto abandonar su consumo. Los efectos sobre la salud cardiovascular incluyen el aumento de la frecuencia cardiaca, el endurecimiento de las arterias y puede provocar irregularidades en el ritmo cardiaco.
+
+**Actividad física:** La escasa actividad física aumenta el riesgo de enfermedades cardiovasculares, ya que la actividad física constante ayuda por sí misma a regular la tensión arterial, mantener un peso saludable quemando calorías, controlar el nivel de colesterol (LDL) en sangre y la diabetes. Además, la actividad física regular aumenta la fuerza del músculo cardíaco.
+
+**Condiciones hereditarias:** Las enfermedades del corazón tienen capacidad de transmisión generacional, por lo que si alguno de los familiares de primer grado sufrió una enfermedad cardiovascular antes de los 55 años, existe un mayor riesgo.
+
+También otros factores de riesgo importantes tienen efectos de transmisión intergeneracional, como la hipertensión arterial, la diabetes y la obesidad.
+
+**Edad:** A medida que aumenta la edad, la actividad del corazón tiende a empeorar o deteriorarse, las arterias pueden perder flexibilidad y ganar dureza, de modo que el corazón no podrá bombear sangre de forma eficaz como lo hacía a edades más tempranas a los músculos del cuerpo; el 80% de las personas que murieron de un infarto tenían más de 65 años.
+
+También se consideran riesgos importantes para las enfermedades cardiovasculares los niveles crónicos o persistentes de estrés, que se cree que aumentan la frecuencia cardiaca, la presión arterial (lo que puede dañar las paredes de las arterias, de modo que al regenerarse pueden cicatrizar, engrosarse o endurecerse) y la necesidad de oxígeno que bombea el corazón. Por otro lado, el abuso del alcohol puede provocar hipertensión, ritmo cardiaco irregular y enfermedades del músculo cardiaco.
+
+Los niveles de hormonas sexuales, por ejemplo, en el caso de las mujeres, cuando llegan a la menopausia, sus posibilidades de sufrir infartos aumentan considerablemente. 
+
+Una vez definidos los principales factores de riesgo de enfermedad cardiovascular, existen variables demográficas distintas a la edad, sexo y raza que pueden ser predictores de infarto, así según Reiner et al (2011) existe una mayor incidencia de Muerte Súbita Cardiovascular en zonas que tenían un nivel socioeconómico bajo. Donde se concluyó que los individuos con menor nivel socioeconómico poseían una mayor carga o cantidad de factores de riesgo de enfermedades cardiovasculares asociados a hábitos de vida como factores de riesgo individuales, escaso control sobre estos factores de riesgo y largas esperas o retrasos en la asistencia médica por infarto agudo de miocardio. Por otro lado, la existencia de disparidad en las variables hospitalarias, principalmente la existencia de equipamiento médico y personal entrenado, se asocia con el nivel socioeconómico y por lo tanto con el resultado de supervivencia de los individuos que sufren infarto agudo de miocardio, lo que implica que las condiciones económicas que se comparten en "barrios" o zonas geográficas tienen un impacto en la mortalidad por infarto agudo de miocardio.
+
+Dado el contexto del problema, sería interesante abordar las siguientes hipótesis y responderlas a partir de la metodología del proyecto:
+
+- El nivel de colesterol elevado tiene mayor impacto que la presencia de diabetes en la enfermedad cardiovascular asociada al infarto agudo de miocardio.
+
+- La presencia de antecedentes de enfermedad cardiovascular es el factor predictivo más significativo del riesgo de infarto de miocardio a 10 años en comparación con los demás factores de riesgo.
+
+- El tabaquismo diario influye menos que la presencia de hipertensión en el riesgo de infarto agudo de miocardio.
+
+- Las mujeres fumadoras tienen un menor riesgo de infarto agudo de miocardio que los hombres fumadores debido a la protección contra el riesgo cardiovascular que proporciona la producción de estrógenos.
+
+- La frecuencia cardiaca elevada (taquicardia) tiene un mayor efecto sobre el riesgo de infarto agudo de miocardio que la frecuencia cardiaca baja (bradicardia).
+<div/>
+
+### Análisis Exploratorio ###
+
+```{r message=FALSE, warning=FALSE, results=FALSE}
+library(mice)
+library(esquisse)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(hrbrthemes)
+library(viridis)
+library(psych)
+
+
+#
+df <- read.csv("framingham.csv", sep = ";")
+
+#Inputación de datos por Random Forest
+set.seed(42)
+imput<-mice(df[,1:16], method = ("rf"))
+datos=complete(imput)
+
+#Guardar la base Inputada
+write.csv(datos,"C:\\Users\\djdie\\Downloads\\Clasificacion-del-Riesgo-de-Enfermedades-Cardiacas-main\\framingham_1.csv")
+
+datos_cuanti<-dplyr::select(datos, "age","cigsPerDay","totChol",
+                            "sysBP","diaBP","BMI","heartRate",
+                            "glucose")
+```
+
+### Figura 1: Distribución y correlación de las variables cuantitativas de riesgo de infarto agudo de miocardio ###
+```{r,echo=FALSE, warning=FALSE, results=FALSE}
+pairs.panels(datos_cuanti,
+             smooth = TRUE,      # Si TRUE, dibuja ajuste suavizados de tipo loess
+             scale = FALSE,      # Si TRUE, escala la fuente al grado de correlación
+             density = TRUE,     # Si TRUE, añade histogramas y curvas de densidad
+             ellipses = TRUE,    # Si TRUE, dibuja elipses
+             method = "pearson", # Método de correlación (también "spearman" o "kendall")
+             pch = 21,           # Símbolo pch
+             lm = FALSE,         # Si TRUE, dibuja un ajuste lineal en lugar de un ajuste LOESS
+             cor = TRUE,         # Si TRUE, agrega correlaciones
+             jiggle = FALSE,     # Si TRUE, se añade ruido a los datos
+             factor = 2,         # Nivel de ruido añadido a los datos
+             hist.col = 4,       # Color de los histogramas
+             stars = TRUE,       # Si TRUE, agrega el nivel de significación con estrellas
+             ci = TRUE)
+
+```
+
+A nivel global ninguna de las variables cuantitativas se correlaciona entre sí, a excepción de la presión arterial sistólica y diastólica como podemos ver en la **Figura 1**. 
+
+Sin embargo, era de esperar que variables como el Índice de Masa Corporal y la frecuencia cardiaca entre otras se correlacionaran, dado que un nivel de sobrepeso u obesidad representaría una mayor carga funcional para el músculo cardiaco.
+
+Por otro lado, la mayor proporción de personas tienen 49 años, donde el 25% de las personas más jóvenes tienen 42 años o menos, y la persona más joven tiene 32 años; sin embargo, el 25% de las personas más viejas tienen 56 años o más.
+
+Para la variable número de cigarrillos consumidos al día, la mayor proporción de individuos son grandes consumidores de tabaco, dado un coeficiente de asimetría de 1,23. Esto implica una mayor concentración de individuos que consumen altas cantidades de cigarrillo.
+
+El nivel de colesterol dentro del grupo de estudio fue de 234 ml/dL de media, lo que implica que la persona media tiene niveles de colesterol superiores a los normales; las personas con el 25% de colesterol más alto de la muestra tienen niveles de colesterol elevados, lo que implica la presencia de factores de riesgo para la salud cardiovascular. En cuanto a la distribución del Índice de Masa Corporal, tenemos que el 50% de las personas de la muestra tienen sobrepeso y menos del 25% de los individuos padecen obesidad, la frecuencia cardiaca que es otro factor relevante como métrica de salud, tenemos que el 50% de los individuos tienen una frecuencia cardiaca entre 60 y 100 latidos por minuto que es un rango normal, donde la frecuencia cardiaca media es de 75. 88 latidos por minuto y un pequeño porcentaje que conforman los extremos de la distribución presentan bradicardia o taquicardia, lo cual puede ser un indicador de enfermedad cardiaca, dado que es posible utilizar medicamentos para disminuir la frecuencia cardiaca; sin embargo, no es posible afirmarlo con certeza al considerar que las personas que realizan niveles altos y regulares de actividad física pueden tener niveles de frecuencia cardiaca menores a 60, ahora para el caso del extremo derecho de la distribución, la arritmia cardiaca es un síntoma de posible enfermedad cardiovascular.
+
+### Tabla 1 y Figura 2: Estadísticas descriptivas ###
+
+```{r, echo=FALSE}
+box_a <- data.frame(Variable = c("Age","Number of Cigarettes per Day",
+                        "Diastolic Blood Pressure",
+                        "Body Mass Index"),
+                        Min = c(32,0,48,15.54),
+                        Q1 = c(42,0,75,23.07),
+                        Median = c(49,0,82,25.38),
+                        Q3 = c(56,20,89.88,28.04),
+                        Max = c(70,70,142.50,56.80))
+#
+library(knitr)
+kable(box_a)
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+A <- dplyr::select(datos_cuanti,"age", "cigsPerDay", "diaBP","BMI")
+B <- dplyr::select(datos_cuanti, "totChol","sysBP","heartRate","glucose")
+boxplot(A, col = rainbow(n = 4))
+```
+
+En la **Figura 2** podemos observar que existen individuos donde el 50% de las personas no consumen tabaco mientras que el 25% de las personas que consumen esta sustancia fuman 20 cigarrillos o más al día, llegando a un consumo máximo de 70 cigarrillos diarios, en ese orden de ideas el 25% de la muestra representaría factores de alto riesgo en su salud cardiovascular. 
+
+En cuanto a la presión arterial diastólica, se refiere a la presión arterial medida en el momento en que el corazón se relaja. Tenemos que de acuerdo a la **Tabla 1** que el 50% de los individuos tienen una presión diastólica de 82 milímetros de mercurio, lo que implica que el 50% de las personas que tienen mayor presión diastólica pueden padecer hipertensión, sin embargo esto en caso de que la presión diastólica sea persistente en el tiempo y no aguda o esporádica en el momento de la medición. También podemos observar en esta medición que existen varios individuos atípicos con una presión diastólica superior a 115 mililitros de mercurio aproximadamente.
+
+
+### Tabla 2 y Figura 3: Estadísticas descriptivas ###
+```{r, echo=FALSE, warning=FALSE}
+box_b <- data.frame(Variable = c("Total Cholesterol","Systolic Blood Pressure","Heart Rate","Glucose Level"),
+                    Min = c(107,83.5,44,40),
+                    Q1 = c(206,117,68,71),
+                    Median = c(234,128,75,78),
+                    Q3 = c(263,144,83,86),
+                    Max = c(696,295,143,394))
+#
+kable(box_b)
+boxplot(B, col = rainbow(n = 4))
+```
+
+En la **Figura 3** podemos observar que para la presión arterial sistólica, es decir cuando el corazón se contrae para enviar sangre al cuerpo, el 25% de las personas tienen menos de 117 milímetros de mercurio de presión sistólica, esto puede implicar la presencia de presión arterial baja ya sea como consecuencia patológica o como efecto de algún medicamento que estén tomando, por otro lado el 25% de las personas con presión arterial sistólica más alta tienen niveles mayores o iguales a 144 milímetros de mercurio llegando hasta 295 milímetros de mercurio. Estos niveles son anormales y pueden implicar la presencia de presión arterial alta o hipertensión.
+
+En el caso de la glucosa, donde el nivel de glucosa en sangre se mide en cualquier momento, es decir, sin ninguna preparación, podemos ver que en la **Figura 3** menos del 25% de las personas con los niveles más altos de glucosa en sangre tienen niveles superiores a 200 mg/dl, lo que implica la presencia de diabetes.
+de las personas con los niveles más altos de glucosa en sangre tienen niveles superiores a 200 mg/dl, lo que implica la presencia de diabetes. 
+
+```{r, echo=FALSE}
+# Preprocesamiento de Variables cualitativas
+datos$male <- factor(datos$male, levels = c(0,1),
+                     labels = c("Women","Men"))
+datos$currentSmoker <- factor(datos$currentSmoker,
+                       levels = c(0,1),
+                       labels = c("Does not smoke","Smoke"))
+datos$BPMeds <- factor(datos$BPMeds, levels = c(0,1),
+                       labels = c("No","Yes"))
+datos$prevalentStroke <- factor(datos$prevalentStroke, 
+                                levels = c(0,1), 
+                                labels =c("No","Yes"))
+datos$prevalentHyp <- factor(datos$prevalentHyp, levels = c(0,1),
+                             labels = c("No","Yes"))
+datos$diabetes <- factor(datos$diabetes, levels = c(0,1),
+                         labels = c("No","Yes"))
+datos$TenYearCHD <- factor(datos$TenYearCHD, levels = c(0,1),
+                           labels = c("No","Yes"))
+
+```
+
+```{r, echo=FALSE}
+tabla_1 <- as.data.frame(prop.table(table(datos$male))*100)
+colnames(tabla_1) <- c("Gender","Frequency")
+tabla_1$Frequency <- round(tabla_1$Frequency,2)
+```
+
+### Figura 4: Distribución del Género
+
+```{r, echo=FALSE}
+library(ggplot2)
+g1 <- ggplot(data = tabla_1, aes(x = Gender, y = Frequency, fill = Gender))
+g1 <- g1 + geom_bar(stat = "identity")
+g1 <- g1 + xlab("Gender")
+g1 <- g1 + ylab("Frequency (%)")
+g1 <- g1 + theme_classic()
+g1 <- g1 + geom_text(aes(label=paste(Frequency,"%")), vjust = 1.6,
+                     color = "black")
+g1 <- g1 + scale_fill_brewer(palette = "Spectral")
+g1
+```
+
+Podemos observar en la **Figura 4** que existe un ligero predominio de las mujeres sobre los hombres, donde el nivel de mujeres es 7.16% mayor que el de los hombres. 
+
+Esto en términos de análisis de enfermedades cardiacas nos diría que la mayor proporción de individuos tendría menor riesgo de padecer enfermedades cardiacas, por lo que de acuerdo a la Fundación Mexicana del Corazón el estrógeno que es la hormona femenina actúa como factor protector contra las enfermedades cardiovasculares, solo que después de la menopausia en las mujeres, su riesgo de contraer esta enfermedad aumenta considerablemente.
+
+Sin embargo, es importante entender que el estrógeno generado de manera natural actúa como factor protector, pero el uso artificial del estrógeno como tratamiento en la mujer aumenta el riesgo de trombosis y/o formación de coágulos en las arterias.
+
+```{r, echo=FALSE}
+tabla_2 <- as.data.frame(prop.table(table(datos$currentSmoker,
+                                          datos$male), margin = 1)*100)
+tabla_2$Freq <- round(tabla_2$Freq,2)
+colnames(tabla_2) <- c("Smoker_not_smoker", "gender", "frequency")
+```
+
+### Figura 5: Distribución de los fumadores por sexo ###
+```{r, echo=FALSE}
+g2 <- ggplot(data = tabla_2, aes(x = Smoker_not_smoker, 
+                                 y = frequency, fill= gender))
+g2 <- g2 + geom_bar(stat = "identity", position = position_dodge())
+g2 <- g2 + xlab("Smoker / Not Smoker")
+g2 <- g2 + ylab("Frequency %")
+g2 <- g2 + theme_classic()
+g2 <- g2 + geom_text(aes(label = paste(frequency,"%")), 
+                     vjust = 1.6, color = "black",
+                     position = position_dodge(0.9))
+g2 <- g2 + scale_fill_brewer(palette = "Spectral")
+g2
+```
+
+En la **Figura 5** podemos ver que la distribución demográfica de los fumadores muestra que el 66,74% de los no fumadores son mujeres, mientras que el 52,82% de los fumadores son hombres. Esto implica que las personas que fuman tienen una distribución relativamente homogénea por sexo, mientras que la mayoría de los no fumadores son mujeres.
+
+### Figura 6: Proporción de personas con riesgo de sufrir un infarto al miocardio en 10 años en función de sus antecedentes de cardiopatía ###
+
+```{r, echo=FALSE}
+#Riesgo de enfermedad coronaria dado si se ha tenido o no un
+#ataque previamente
+tabla_3 <- as.data.frame(prop.table(table(datos$prevalentStroke,
+                                          datos$TenYearCHD), 
+                                          margin = 1)*100)
+
+tabla_3$Freq <- round(tabla_3$Freq,2)
+colnames(tabla_3) <- c("Past_Attack", "riesgo_at", "frequency")
+
+g3 <- ggplot(data = tabla_3, aes(x = riesgo_at, y = frequency, fill = Past_Attack)) 
+g3 <- g3 + geom_bar(stat = "identity", position = position_dodge())
+g3 <- g3 + xlab("Risk of Coronary Heart Attack in 10 years")
+g3 <- g3 + ylab("Frequency (%)")
+g3 <- g3 + theme_classic()
+g3 <- g3 + geom_text(aes(label = paste(frequency,"%")), 
+                     vjust = 1.6, color = "black",
+                     position = position_dodge(0.9))
+g3 <- g3 + scale_fill_brewer(palette = "Spectral")
+g3
+```
+
+En la **Figura 6** podemos ver que de las personas que sufrieron un infarto en el pasado, es decir, que tienen antecedentes de enfermedad cardiaca el 56% no tienen riesgo de sufrir otro infarto en 10 años, esto puede implicar algunas cuestiones como por ejemplo que los antecedentes de enfermedad cardiaca no sean un predictor tan relevante como los otros factores de riesgo de infarto agudo de miocardio, o que los antecedentes previos animen a la persona a un control periódico de los factores de riesgo que conduzca a una reducción del riesgo de infarto en el futuro.
+
+
+```{r, echo=FALSE}
+# Haber sufrido un ataque cardiaco dado que tenia hipertensión
+tabla_4 <- as.data.frame(prop.table(table(datos$prevalentHyp, 
+                                          datos$prevalentStroke))*100)
+
+tabla_4$Freq <- round(tabla_4$Freq,2)
+colnames(tabla_4) <- c("hypertension_history", 
+                       "heart_attack_history",
+                       "frequency")
+```
+
+### Figura 7: Antecedentes de infarto al miocardio con antecedentes de hipertensión arterial ###
+
+```{r, echo=FALSE}
+# Grafica ataque al corazón dado que tenia historial de hipertensión
+g4 <- ggplot(data = tabla_4, aes(x = heart_attack_history, y = frequency, 
+                                 fill=hypertension_history))
+g4 <- g4 + geom_bar(stat = "identity",position = position_dodge())
+g4 <- g4 + xlab("Heart Attack History")
+g4 <- g4 + ylab("Frequency (%)")
+g4 <- g4 + theme_classic()
+g4 <- g4 + geom_text(aes(label = paste(frequency,"%")),
+                     vjust = -0.3, color = "black",
+                     position = position_dodge(0.9))
+g4 <- g4 + scale_fill_brewer(palette = "Spectral")
+g4
+```
+
+En la **Figura 7** podemos ver que el 68,81% de los individuos sin antecedentes de infarto tampoco tenían hipertensión, mientras que el 30,6% sí. Por otro lado, menos del 1% de los que tenían antecedentes de infarto tenían al mismo tiempo antecedentes de hipertensión.
+
+```{r, echo=FALSE}
+# Riesgo de ataque al corazón en 10 años dado que tiene diabetes
+tabla_5 <- as.data.frame(prop.table(table(datos$diabetes, 
+                                          datos$TenYearCHD),
+                                          margin = 1)*100)
+tabla_5$Freq <- round(tabla_5$Freq, 2)
+colnames(tabla_5) <- c("presence_of_diabetes", "Heart_Attack_Risk",
+                       "frequency")
+```
+
+### Figura 8: Proporción de personas con diabetes que corren riesgo de sufrir un infarto ###
+
+```{r, echo=FALSE}
+g5 <- ggplot(data= tabla_5, aes(x = presence_of_diabetes, y = frequency, 
+                                  fill = Heart_Attack_Risk))
+g5 <- g5 + geom_bar(stat = "identity", position = position_dodge())
+g5 <- g5 + xlab("Presence of Diabetes")
+g5 <- g5 + ylab("Frequency (%)")
+g5 <- g5 + theme_classic()
+g5 <- g5 + geom_text(aes(label = paste(frequency,"%")),
+                     vjust = 1.6, color = "black",
+                     position = position_dodge(0.9))
+g5 <- g5 + scale_fill_brewer(palette = "Spectral")
+g5
+```
+
+**La figura 8** muestra que de los que no tienen diabetes, el 85,37% no tienen riesgo de sufrir un infarto en 10 años, mientras que el 63,3% de los que sí tienen diabetes tampoco tienen riesgo de sufrir un infarto en el futuro. Esto nos lleva a pensar que quizá la diabetes por sí misma no sea un factor de riesgo fuerte para la predicción del infarto agudo de miocardio, o que por otro lado la presencia de diabetes aumenta el control médico de otros factores de riesgo.
+
+### Figura 9: Distribución del riesgo de infarto en 10 años ###
+
+```{r, echo=FALSE}
+tabla_6 <- as.data.frame(round(prop.table(table
+                                          (datos$TenYearCHD))*100,2))
+colnames(tabla_6) <- c("Heart_Attack_Risk","frequency")
+
+# Gráfico Riesgo de ataque cardiaco en 10 años
+g6 <- ggplot(data = tabla_6, aes(x = Heart_Attack_Risk, 
+                                 y = frequency, fill = Heart_Attack_Risk))
+g6 <- g6 + geom_bar(stat = "identity")
+g6 <- g6 + xlab("Heart Attack Risk in 10 years")
+g6 <- g6 + ylab("Frequency (%)")
+g6 <- g6 + theme_classic()
+g6 <- g6 + geom_text(aes(label=paste(frequency,"%")), vjust = 1.6, 
+                     color = "black")
+g6 <- g6 + scale_fill_brewer(palette = "Spectral")
+g6
+```
+
+**La figura 9** nos indica que la mayor proporción de individuos de la muestra, es decir, el 84,8% de las personas, no corren riesgo de sufrir un infarto de miocardio. Por tanto, si elegimos a alguien al azar, probablemente no correrá el riesgo de sufrir un infarto en 10 años.
+
+Por último, si queremos utilizar esta variable como respuesta, podría pensarse que existe un desbalanceo de clases.
+
+### Metodología ###
+
+El propósito de este trabajo es utilizar la teoría y aplicación de modelos de regresión de respuesta binaria, en este caso específico un modelo de regresión logística con enlace Logit. La finalidad de este modelo es conseguir una buena predicción sobre si una persona puede o no fallecer por parada cardiaca, así como identificar las variables que más inciden en este fenómeno. El grupo de estudio es una comunidad de Framingham, Massachusetts, de al menos 4000 observaciones y 16 variables.
+
+Por otro lado, la base de datos tenía datos perdidos como se puede observar en la **Tabla 3**, para lo cual se realizó una imputación mediante el método "Random forest" que "consiste en la combinación de predictores basados en árboles de decisión o regresión que se construyen a partir de muestras independientes seleccionadas del conjunto de datos original." ***Busi J. et al (2018)*** Bajo la metodología anterior este método se considera robusto a la hora de imputar datos, tanto cuantitativos como cualitativos, es decir, para este caso de estudio es una metodología conveniente.
+
+### Tabla 3: Porcentaje de valores perdidos en las variables cuantitativas ###
+
+```{r, echo=FALSE}
+por_NA <- data.frame(Variables = c("Age","Cigarettes per Day",
+                         "Total Cholesterol", 
+                         "Systolic Blood Pressure",
+                         "Diastolic Blood Pressure",
+                         "Body Mass Index",
+                         "Heart Rate","Glucose"),
+           Percentage_Missing_Data = c(0,0.68,1.17,0,0,
+                                          0.44,0,9.15))
+#
+kable(por_NA, col.names = c("Variables","Missing Data (%)"))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+datos_balanceados <- read.csv("framingham_1.csv", dec = ".")
+
+#Resampling
+library(ROSE)
+set.seed(42)
+datos_balanceados <- ovun.sample(TenYearCHD ~ ., data = datos_balanceados,method = "over", N= 7188)$data
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+datos_balanceados$male <- factor(datos_balanceados$male, levels = c(0,1),labels = c("Women","Man"))
+datos_balanceados$education <- factor(datos_balanceados$education)
+datos_balanceados$currentSmoker <- factor(datos_balanceados$currentSmoker)
+datos_balanceados$BPMeds <- factor(datos_balanceados$BPMeds)
+datos_balanceados$prevalentStroke <- factor(datos_balanceados$prevalentStroke)
+datos_balanceados$prevalentHyp <- factor(datos_balanceados$prevalentHyp)
+datos_balanceados$diabetes <- factor(datos_balanceados$diabetes)
+datos_balanceados$TenYearCHD <- factor(datos_balanceados$TenYearCHD, levels = c(0,1),
+                                       labels = c("No","Yes"))
+datos_balanceados$totChol <- datos_balanceados$totChol - mean(datos_balanceados$totChol)
+datos_balanceados$sysBP <- datos_balanceados$sysBP-mean(datos_balanceados$sysBP) 
+```
+
+
+### Figura 10: Ajuste de clases desbalanceadas###
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tabla_balanceados <- data.frame(table(datos_balanceados$TenYearCHD))
+tabla_balanceados$Freq <- 100*tabla_balanceados$Freq/sum(tabla_balanceados$Freq)
+colnames(tabla_balanceados) <- c("Risk", "Frequency")
+
+#Gráfico comparación datos desbalanceados y balanceados
+g7 <- ggplot(data = tabla_balanceados,aes(x=Risk, y = Frequency, fill=Risk))
+g7 <- g7 + geom_bar(stat = "identity")
+g7 <- g7 + xlab("Heart Attack Risk in 10 years")
+g7 <- g7 + ylab("Frequency (%)")
+g7 <- g7 + theme_classic()
+g7 <- g7 + geom_text(aes(label=paste(Frequency,"%")), vjust = 1.6, 
+                color = "black")
+g7 <- g7 + scale_fill_brewer(palette = "Spectral")
+#
+library(gridExtra)
+grid.arrange(g6,g7)
+```
+
+Como podemos ver en la **Figura 10** inicialmente para nuestra variable de respuesta, que es el riesgo a 10 años de sufrir un ataque al corazón. En nuestra muestra original de aproximadamente 4500 observaciones, teníamos que el 84,8% de las personas no tenían riesgo a 10 años de sufrir un ataque al corazón, mientras que el 15,2% sí lo tenían. En este sentido, puede haber un desequilibrio de datos que afecte significativamente a la precisión de nuestro clasificador para detectar correctamente los verdaderos positivos. 
+
+Por este motivo, utilizamos una técnica de remuestreo para reescalar la categoría de "sí" en la variable de riesgo de infarto en 10 años. Lo que se hace es tomar una muestra aleatoria con reemplazo y añadir observaciones hasta que el número de observaciones en la categoría "con riesgo" sea exactamente el mismo que en la categoría "sin riesgo". Tras el remuestreo tenemos un total de 7188 observaciones en las que el 50% están en la clase de riesgo y el otro 50% en la de sin riesgo.
+
+### Tabla 4: Valor informativo (IV) de las variables predictoras ###
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+datos_balanceados <- read.csv("framingham_1.csv", dec = ".")
+
+#
+set.seed(42)
+datos_balanceados <- ovun.sample(TenYearCHD ~ ., data = datos_balanceados,method = "over", N= 7188)$data
+
+#
+datos_balanceados$male <- factor(datos_balanceados$male)
+datos_balanceados$education <- factor(datos_balanceados$education)
+datos_balanceados$currentSmoker <- factor(datos_balanceados$currentSmoker)
+datos_balanceados$BPMeds <- factor(datos_balanceados$BPMeds)
+datos_balanceados$prevalentStroke <- factor(datos_balanceados$prevalentStroke)
+datos_balanceados$prevalentHyp <- factor(datos_balanceados$prevalentHyp)
+datos_balanceados$diabetes <- factor(datos_balanceados$diabetes)
+datos_balanceados$TenYearCHD <- factor(datos_balanceados$TenYearCHD)
+datos_balanceados$totChol <- datos_balanceados$totChol
+datos_balanceados$sysBP <- datos_balanceados$sysBP
+```
+
+
+
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
+library(scorecard)
+library(dplyr)
+
+iv = iv(datos_balanceados, y = 'TenYearCHD') %>%
+  as_tibble() %>%
+  mutate( info_value = round(info_value, 3) ) %>%
+  arrange( desc(info_value) )
+
+kable(iv[-c(3),])
+
+```
+
+El Valor de la Información es una técnica de análisis exploratorio, que nos permite determinar que variables de nuestro conjunto de datos tienen poder predictivo o influencia sobre la variable respuesta, por esta razón en la **Tabla 4** determinamos el poder de influencia de cada una de nuestras variables explicativas. A partir de esto tenemos que las variables,  
+si tiene prevalencia de ataque al corazón y si es fumador son clasificadas como "Inútiles para la predicción" (<0.02), las variables de "número de cigarrillos al día, la presencia o no de diabetes, el género, si usa o no medicina para la hipertensión arterial y el nivel educativo parecen ser predictores débiles (0.02 - 0.1) del riesgo cardiovascular.
+
+Finalmente tenemos que el nivel de ritmo cardíaco y la prevalencia de hipertensión arterial son predictores con poder de predicción media (0.1 - 0.3), el nivel de glucosa, la edad y la presión arterial diastólica son predictores con potencia alta de predicción (0.3 - 0.5) y el Indice de Masa Corporal, la presión arterial sistólica y el nivel de colesterol total son variables de alto poder predictivo (>0.5).
+
+
+### Resultados ###
+
+Para responder a nuestro objetivo principal, se desarrollaron dos modelos. El primero se centra en la interpretación de los estimadores y en responder a las hipótesis que planteamos en el contexto del problema, mientras que nuestro segundo modelo pretende servir como clasificador del riesgo de infarto a 10 años. 
+
+### Cuadro 5: Modelo explicativo en escala logarítmica ###
+
+```{r, echo=FALSE}
+datos_balanceados$heart_cat <- NA
+datos_balanceados$heart_cat <- cut(datos_balanceados$heartRate, breaks = c(0,59,100,200),
+                         labels = c("Bradicardia","Normal","Taquicardia"))
+
+datos_balanceados$heart_cat <- relevel(datos_balanceados$heart_cat, ref = "Normal")
+
+#
+modelo1 <- glm(TenYearCHD~male+age+prevalentStroke+diabetes+totChol
+                 +cigsPerDay+prevalentHyp+sysBP+currentSmoker*male,
+               data = datos_balanceados, family= "binomial")
+summary(modelo1)
+```
+
+
+
+### Cuadro 6: Modelo explicativo en escala real ###
+
+```{r, echo=FALSE}
+exp(coef(modelo1))
+```
+
+- Inicialmente tenemos que una mujer de 20 años sin antecedentes de infarto, sin diabetes con un nivel medio de colesterol que no fuma, no tiene hipertensión arterial y tiene una presión arterial sistólica media tiene un riesgo 0,002 veces menor de no tener una enfermedad cardiaca en 10 años que de tenerla.
+
+- Un hombre tiene 1,49 veces más probabilidades de padecer una cardiopatía en 10 años que una mujer.
+
+- Por cada año adicional que tiene una persona, el riesgo de sufrir una enfermedad cardiaca en 10 años aumenta en 1,06 con respecto a una persona de 20 años.
+
+- Manteniendo todo constante, si una persona tiene antecedentes de infarto tiene un riesgo 2,62 veces mayor de sufrir otro infarto en 10 años que alguien que no tiene antecedentes de enfermedad cardiaca.
+
+- Manteniendo todo constante, una persona que tiene diabetes tiene un riesgo 2,65 veces mayor de sufrir un infarto en 10 años que una persona que no tiene diabetes.
+
+- Manteniendo todo constante, por cada mg/dl adicional de colesterol total que una persona tiene por encima de la media, tiene un riesgo de infarto a 10 años 1,002 veces mayor que una persona con un nivel de colesterol medio.
+
+- Manteniendo todo constante, por cada cigarrillo adicional fumado, una persona tiene un riesgo 1,01 veces mayor de sufrir un infarto de miocardio en 10 años.
+
+- Manteniendo todo constante, si una persona tiene una prevalencia de hipertensión arterial, tiene un riesgo 1,35 veces mayor de sufrir un infarto de miocardio en 10 años que una persona que no sufre hipertensión arterial.
+
+- Manteniendo todo constante, por cada milímetro de mercurio adicional por encima de la presión arterial sistólica media, el riesgo de sufrir un infarto de miocardio en 10 años es 1,01 veces mayor que una persona con una presión arterial sistólica media.
+
+- Manteniendo todo constante, si una persona es fumadora tiene un riesgo de sufrir un infarto en 10 años 1,18 veces mayor que un no fumador.
+
+- Manteniendo todo constante, un hombre fumador tiene un riesgo 1,05 veces mayor de sufrir un infarto en 10 años que una mujer fumadora. Esto puede sugerir dos cosas, que el factor hormonal (estrógeno) que es protector contra el riesgo cardiovascular es eficiente contra el daño cardiovascular del tabaquismo para las mujeres y también puede haber características individuales rutinarias asociadas con el estrés que según el Instituto de Texas una persistencia crónica de estrés permite la liberación prolongada y consistente de adrenalina, Esto puede dañar la capa interna de las arterias, que pueden endurecerse o engrosarse a medida que se curan, facilitando la acumulación de placa en las arterias, y el estrés aumenta el riesgo de formación de coágulos.
+
+- Así, según Segura R. (2016), la valoración positiva que los hombres otorgan al trabajo asociada a la percepción del mismo como medio de sustento, autorrealización y satisfacción puede conducir a un sobrecompromiso en su desempeño laboral, de manera que la sobrecarga de trabajo les obliga a permanecer largas horas en el lugar de trabajo para mantener su estatus y jerarquía social, por lo que la asociación del desempeño laboral asociado a la realización de la masculinidad implica que el trabajo sea un estresor significativamente mayor para los hombres que para las mujeres. 
+
+- Al mismo tiempo, es importante comprender que el estrés crónico puede conducir a la formación de hábitos de vida que aumentan el riesgo cardiovascular, según el Instituto del Corazón de Texas, como empezar a fumar, fumar más de lo habitual o comer más de lo debido para sentirse más tranquilo.
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+datos_balanceados <- read.csv("framingham_1.csv", dec = ".")
+
+#Resampling
+library(ROSE)
+set.seed(42)
+datos_balanceados <- ovun.sample(TenYearCHD ~ ., data = datos_balanceados,
+                                 method = "over", N= 7188)$data
+datos_balanceados <- select(datos_balanceados,-1)
+
+#
+datos_balanceados$male <- factor(datos_balanceados$male, levels = c(0,1),
+                       labels = c("Mujer","Hombre"))
+datos_balanceados$education <- factor(datos_balanceados$education)
+datos_balanceados$currentSmoker <- factor(datos_balanceados$currentSmoker)
+datos_balanceados$BPMeds <- factor(datos_balanceados$BPMeds)
+datos_balanceados$prevalentStroke <- factor(datos_balanceados$prevalentStroke)
+datos_balanceados$prevalentHyp <- factor(datos_balanceados$prevalentHyp)
+datos_balanceados$diabetes <- factor(datos_balanceados$diabetes)
+datos_balanceados$TenYearCHD <- factor(datos_balanceados$TenYearCHD)
+datos_balanceados$totChol <- datos_balanceados$totChol - mean(datos_balanceados$totChol)
+datos_balanceados$sysBP <- datos_balanceados$sysBP-mean(datos_balanceados$sysBP)
+datos_balanceados$age <- datos_balanceados$age - 20
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(glmnet)
+library(caret)
+set.seed(42)
+
+# Datos de Prueba y Entrenamiento
+datbalanceados_idx = createDataPartition(datos_balanceados$TenYearCHD, p=0.75, list = FALSE)
+datbalanceados_trn = datos_balanceados[datbalanceados_idx, ]
+datbalanceados_tst = datos_balanceados[datbalanceados_idx, ]
+
+# Validación Cruzada con k=10
+cv_1 = trainControl(method = "cv", number = 10)
+
+# seleccion del mejor alfa y lambda para Elastic Net
+def_elnet = train(TenYearCHD ~ . ^ 2., data= datbalanceados_trn,
+                  method = "glmnet",
+                  trControl = cv_1,
+                  tuneLenght = 10)
+
+
+# Modelo de Regularización con los mejores parámetros
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+
+#
+get_best_result(def_elnet)
+
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+datbalanceados_trn$male <- ifelse(datbalanceados_tst$male == "Hombre",1,0)
+X <- as.matrix(select(datbalanceados_trn,-16))
+Y <- as.matrix(select(datbalanceados_trn,16))
+fit <- glmnet(X,Y, family = "binomial",lambda = 0.0003195445, alpha = 1)
+```
+
+ 
+### Table 7: Rendimiento del clasificador Elastic Net ###
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+datbalanceados_tst$male <- ifelse(datbalanceados_tst$male == "Hombre",1,0)
+X <- data.matrix(select(datbalanceados_tst,-16))
+Y <- data.matrix(select(datbalanceados_tst,16))
+
+assess.glmnet(fit,X,Y)
+```
+
+Podemos ver que nuestro modelo de clasificación con los parámetros que maximizan su precisión en la predicción, nos arroja un AUC de 72.21% el cuál es lo suficientemente útil para realizar predicciones sobre nuevas muestras para nuestra variable de interés que es el riesgo de tener un infarto agudo al miocardio en 10 años. Esto implica que de cada 10 predicciones 7.22 serán correctas, ya sea clasificado como un individuo con riesgo o sin riesgo cardiovascular.
+
+
+Para este segundo modelo utilizamos un enfoque en el que encontramos el modelo con el criterio de información de akaike más bajo. Tomamos la ecuación que arrojaba este resultado y utilizamos métodos de regularización, concretamente un Elastic Net, donde calibramos los parámetros alfa y lambda de tal manera que maximizaran la precisión en la clasificación, este modelo adopta una penalización Ridge, es decir, a medida que el valor lambda se aproxima a 1 menor es el valor de los predictores y la penalización Lasso. Esta es similar, sin embargo a pesar que no elimina las variables poco relevantes para la predicción si fuerza que su efecto sobre la misma sea muy pequeño dado que hace que los coeficientes de las variables no relevantes sean cercanos a cero.
+
+Con el método de clasificación a través de penalización mediante modelos de regularización logramos reducir la varianza de forma significativa a cambio de ganar un poco de sesgo.
+
+
+### Conclusiones ### 
+
+- Probablemente con el uso de otros clasificadores, como árboles de decisión, k vecinos más cercanos o máquinas de soporte vectorial, se puedan obtener clasificadores con mayor precisión.
+
+- Entre las variables explicativas, el predictor con mayor influencia sobre el riesgo de enfermedad cardiovascular a 10 años es la presencia de diabetes, seguido de la presencia de antecedentes de enfermedad cardiaca y, a continuación, la edad.
+
+- El riesgo cardiovascular es mayor en las personas con antecedentes de enfermedad cardiaca que en las personas con niveles de colesterol superiores a la media pero inferiores a 3 mg/dl por encima de la media, por encima de ésta, el riesgo cardiovascular es mayor en las personas con colesterol elevado.
+
+- Los hombres fumadores tienen un mayor riesgo de enfermedad cardiovascular a 10 años que las mujeres fumadoras, lo que podría explicarse principalmente por la presencia de factores generadores de estrés en términos de cantidad y prevalencia, asociados a la actividad laboral y a la aparición de hábitos de vida poco saludables como forma de aliviar el malestar causado por el estrés.
+
+- La presión arterial sistólica genera un riesgo de enfermedad cardiovascular en 10 años 0,01 veces por cada milímetro de mercurio adicional, esta se genera cuando el corazón se contrae y empuja la sangre a través de los vasos sanguíneos y arterias del cuerpo por lo que a medida que aumenta la presión hay mayor riesgo de dañar la pared interna de las arterias, además la carga funcional del corazón es mayor. En este caso podemos definir que la hipertensión arterial sistólica que genera daño a la pared interna de las arterias es más riesgosa que la presencia de hipotensión arterial sistólica, que puede deberse al uso de medicamentos o a la actividad física intensa y regular.
+
+- El nivel de colesterol total en sangre no es un factor predictivo estadísticamente significativo del riesgo de infarto a 10 años. En este orden de ideas, la hipótesis planteada en la que se compara el nivel de colesterol con la diabetes respecto al riesgo de infarto a 10 años no puede analizarse.
+
+### Bibliografía ###
+
+1. Texas Heart Institute. Cardiovascular Risk Factors. Taken from: https://www.texasheart.org/heart-health/heart-information-center/topics/factores-de-riesgo-cardiovascular/
+
+2. DrC. González R., DrC. Montes L., MSc. Tutusaus T. (2015) Sociodemographic Determinants and Sudden Cardiovascular Death. Cuban Journal of Public Health.
+
+3. Centers for Disease Control and Prevention
+ (2021). About the Body Mass Index for Adults. Taken from: https://www.cdc.gov/healthyweight/spanish/assessing/bmi/adult_bmi/index.html
+
+4. PhD Reiner K. et al (2011). Socioeconomic Status and Incidence of Sudden Cardiac Arrest. Journal of the Canadian Medical Association (15), 1705 - 1712
+
+5. Centers for Disease Control and Prevention (2018). Diabetes in Spanish. Taken from:
+[https://www.cdc.gov/diabetes/spanish/basics/getting-tested.html#:~:text=Los%20valores%20de%20az%C3%BAcar%20en,mayores%20indican%20que%20tiene%20diabetes.&text=Esta%20prueba%20mide%20sus%20niveles,un%20l%C3%ADquido%20que%20contiene%20glucosa.](https://www.cdc.gov/diabetes/spanish/basics/getting-tested.html#:~:text=Los%20valores%20de%20az%C3%BAcar%20en,mayores%20indican%20que%20tiene%20diabetes.&text=Esta%20prueba%20mide%20sus%20niveles,un%20l%C3%ADquido%20que%20contiene%20glucosa.)
+
+6. Mexican Heart Foundation . Gender. Taken from: [https://fundacionmexicanadelcorazon.org/prevencion/factores-de-riesgo/genero/#:~:text=El%20g%C3%A9nero%20se%20considera%20un,que%20el%20de%20una%20mujer](https://fundacionmexicanadelcorazon.org/prevencion/factores-de-riesgo/genero/#:~:text=El%20g%C3%A9nero%20se%20considera%20un,que%20el%20de%20una%20mujer)
+
+7. National Health Observatory (2013). Cardiovascular Disease: Leading Cause of Death in Colombia. Bulletin No. 1, december 9 of 2013
+
+8. Bussi J. et al. (2018). Visualization and Imputation Methods for Missing Data in the Household Expenditure Survey. 
+
+9. Segura R. , Perez I. (2016). Differential impact of stress between men and women: A gender approach.. FES Iztacala Institutional Gender Studies Program.
+
+10. Mayo Clinic. Healthy Lifestyle: Being fit. Taken from:
+[https://www.mayoclinic.org/es-es/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979](https://www.mayoclinic.org/es-es/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979)
+
+
+
